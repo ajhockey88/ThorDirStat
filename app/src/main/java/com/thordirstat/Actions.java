@@ -67,7 +67,7 @@ final class Actions {
                 }
             });
         }
-        if (n.isReal() && n.parent != null && n.label == null) {
+        if (s.canDelete(n)) {
             add(labels, actions, "🗑️ Delete…", new Runnable() {
                 @Override public void run() { confirmDelete(activity, n); }
             });

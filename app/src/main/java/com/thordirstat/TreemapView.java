@@ -21,6 +21,8 @@ import android.view.View;
  */
 final class TreemapView extends View {
     interface Listener {
+        void onTreemapTap(Node n);
+
         void onTreemapLongPress(Node n);
     }
 
@@ -73,6 +75,7 @@ final class TreemapView extends View {
                 if (n != null) {
                     Haptics.play(getContext(), Haptics.SELECT);
                     Session.get().select(n);
+                    if (listener != null) listener.onTreemapTap(n);
                 }
                 return true;
             }

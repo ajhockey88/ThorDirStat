@@ -31,7 +31,7 @@ screenshots from a Thor will replace it.
 
 | On the treemap | |
 |---|---|
-| ☝️ Tap a rectangle | Selects that file; the folder tree opens to it |
+| ☝️ Tap a rectangle | Selects that file (the folder tree opens to it) and shows a 🗑️ **Delete** button |
 | ✌️ Double-tap | Zooms into that folder (one level at a time) |
 | ✊ Press and hold | Actions for that file |
 
@@ -43,6 +43,10 @@ screenshots from a Thor will replace it.
 | 🎨 Tap a file type | Outlines every file of that type in the treemap in yellow (tap again to clear) |
 
 The bar along the top has 💽 Drives, 🔍 Zoom in, ↩️ Zoom out, ☰ Actions, ⚙️ Settings and ✖️ Close.
+
+🗑️ **Quick delete:** tap anything in the treemap, then **Delete**. It disappears at once and its
+space shows as free; for 5 seconds the button turns into **Undo**, after which it's deleted from
+storage for good.
 
 **Actions** (WinDirStat's right-click menu): zoom the treemap into a folder, zoom out, open a file
 in another app, share it, properties (size, share, files, folders, last change), copy the path,
@@ -94,8 +98,8 @@ The treemap is WinDirStat's: a squarified layout (biggest first, rows along the 
 with van Wijk and van de Wetering's cushion shading, drawn on a background thread pixel by
 pixel. The biggest file types get WinDirStat's palette in its order, and the rest share grey.
 
-Open and Share hand one file at a time to the app you pick, read-only. Delete removes the
-file or folder (through Shizuku inside `Android/data` and `Android/obb`) and updates every
+Open and Share hand one file at a time to the app you pick, read-only. Delete (from the
+treemap after its 5-second undo, or from Actions after a confirmation) removes the file or folder (through Shizuku inside `Android/data` and `Android/obb`) and updates every
 folder above it, the file types and the treemap without a rescan.
 
 🔒 ThorDirStat only goes online when you tap **Check for updates**. It reads file names, sizes and
