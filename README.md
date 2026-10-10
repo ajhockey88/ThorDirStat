@@ -130,7 +130,7 @@ be uninstalled before it can replace an older install.
 
 ### Releasing
 
-Bump `versionCode` and `versionName` in `app/build.gradle` and `AndroidManifest.xml`, build with
-the usual key, then tag a commit that adds `release/ThorDirStat.apk` and `release/notes.md` and
-push only the tag (`git push origin v1.1`). The Release workflow publishes it, and the app's
-Check for updates finds it. The tag's commit doesn't need to go on `main`.
+Bump `versionCode` and `versionName` in `app/build.gradle` and `AndroidManifest.xml` and build
+with the usual key. Then commit `release/ThorDirStat.apk` and `release/notes.md` on top of `main`
+and push that commit as a `release/v1.1` branch (not to `main`). The Release workflow tags it
+`v1.1`, publishes the release, and deletes the branch; the app's Check for updates finds it.
