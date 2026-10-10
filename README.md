@@ -1,4 +1,6 @@
-# <img src="app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" width="48" align="center" alt="ThorDirStat icon"> ThorDirStat
+<p align="center"><img src="docs/logo.png" width="160" alt="ThorDirStat logo: a closed AYN Thor whose lid is a treemap"></p>
+
+# ThorDirStat
 
 [![Downloads](https://img.shields.io/github/downloads/ajhockey88/ThorDirStat/total?style=for-the-badge&logo=github&label=Downloads&color=yellowgreen)](https://github.com/ajhockey88/ThorDirStat/releases)
 [![Latest release](https://img.shields.io/github/v/release/ajhockey88/ThorDirStat?style=for-the-badge&logo=github&label=Latest%20release&color=blue)](https://github.com/ajhockey88/ThorDirStat/releases/latest)
