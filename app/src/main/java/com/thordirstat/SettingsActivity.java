@@ -73,7 +73,6 @@ public class SettingsActivity extends Activity {
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         list.addView(text("\nScanning", 17));
-        toggle("Show <Free space> for each drive", Prefs.KEY_SHOW_FREE, prefs.showFree());
         toggle("Show <Unknown> (used space no folder accounts for: apps, their private data and Android)",
                 Prefs.KEY_SHOW_UNKNOWN, prefs.showUnknown());
         toggle("Count size on disk instead of file length (takes effect on the next scan)",
