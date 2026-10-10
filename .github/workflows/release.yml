@@ -1,13 +1,13 @@
 name: Release
 
-# Publishes a GitHub release when a version tag (v1.0, v1.1, ...) is pushed. The tagged commit
-# carries the signed APK and the release notes in release/, so the signing key never leaves
-# the machine that builds it (see "Releasing" in the README). Check for updates in the app
-# reads these releases.
+# Publishes a GitHub release when a release/v1.0, release/v1.1, ... branch is pushed: tags it
+# v1.0, attaches the APK and removes the branch. The pushed commit carries the signed APK and
+# the release notes in release/, so the signing key never leaves the machine that builds it
+# (see "Releasing" in the README). Check for updates in the app reads these releases.
 
 on:
   push:
-    tags: ['v*']
+    branches: ['release/v*']
 
 permissions:
   contents: write
@@ -31,8 +31,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" release/ThorDirStat.apk \
-            --title "ThorDirStat ${GITHUB_REF_NAME#v}" \
+          tag="${GITHUB_REF_NAME#release/}"
+          gh release create "$tag" release/ThorDirStat.apk \
+            --target "$GITHUB_SHA" \
+            --title "ThorDirStat ${tag#v}" \
             --notes-file release/notes.md \
-            --verify-tag \
             --latest
+          git push origin --delete "$GITHUB_REF_NAME"
