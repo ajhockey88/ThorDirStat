@@ -4,6 +4,7 @@
 
 [![Downloads](https://img.shields.io/github/downloads/ajhockey88/ThorDirStat/total?style=for-the-badge&logo=github&label=Downloads&color=yellowgreen)](https://github.com/ajhockey88/ThorDirStat/releases)
 [![Latest release](https://img.shields.io/github/v/release/ajhockey88/ThorDirStat?style=for-the-badge&logo=github&label=Latest%20release&color=blue)](https://github.com/ajhockey88/ThorDirStat/releases/latest)
+[![Reddit](https://img.shields.io/badge/Reddit-View%20post-ff4500?style=for-the-badge&logo=reddit&logoColor=white)](https://www.reddit.com/r/AynThor/comments/1x2hsll/thordirstat_windirstat_for_the_ayn_thor_see/)
 
 🗺️ A WinDirStat for the AYN Thor.
 
