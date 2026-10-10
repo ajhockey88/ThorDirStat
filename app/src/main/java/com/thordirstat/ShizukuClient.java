@@ -68,13 +68,18 @@ final class ShizukuClient {
 
     /** Runs a shell command as the Shizuku user and waits for it. Call off the main thread. */
     static boolean runShell(String command) {
+        return runShellCode(command) == 0;
+    }
+
+    /** Like {@link #runShell}, but returns the exit code, or -1 if it couldn't run. */
+    static int runShellCode(String command) {
         try {
             IRemoteProcess p = newProcess(new String[] {"sh", "-c", command});
             int code = p.waitFor();
             p.destroy();
-            return code == 0;
+            return code;
         } catch (Exception e) {
-            return false;
+            return -1;
         }
     }
 

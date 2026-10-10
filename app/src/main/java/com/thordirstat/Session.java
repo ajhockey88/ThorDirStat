@@ -335,7 +335,14 @@ final class Session {
         }
     }
 
-    /** Deletes a file or a folder and everything in it, for good. */
+    // What a delete managed: all of it, or everything inside a folder Android won't let go of.
+    private static final int FAILED = 0, DELETED = 1, EMPTIED = 2;
+
+    /**
+     * Deletes a file or a folder and everything in it, for good. Android doesn't let anyone
+     * remove an app's own folder in Android/data or Android/obb, only what's in it, so there the
+     * folder is emptied and stays (the space is freed all the same).
+     */
     void delete(final Context context, final Node n, final Done done) {
         if (n == null || !n.isReal() || n.parent == null || volumes.containsKey(n)) return;
         final String path = n.path();
@@ -344,20 +351,36 @@ final class Session {
         changed(TREE);
         new Thread(new Runnable() {
             @Override public void run() {
-                boolean ok = !shell && deleteTree(new File(path));
-                if (!ok && ShizukuClient.hasPermission()) {
-                    ok = ShizukuClient.runShell("rm -rf -- " + Scanner.quote(path));
+                int result = FAILED;
+                if (!shell) {
+                    File f = new File(path);
+                    deleteTree(f);
+                    result = !f.exists() ? DELETED : isEmptyDir(f) ? EMPTIED : FAILED;
                 }
-                // Apps can't see into the folders Shizuku handles, so trust rm's answer there.
-                final boolean deleted = ok && (shell || !new File(path).exists());
+                if (result != DELETED && ShizukuClient.hasPermission()) {
+                    // Apps can't see into the folders Shizuku handles, so the shell checks what's left.
+                    String q = Scanner.quote(path);
+                    int code = ShizukuClient.runShellCode("rm -rf -- " + q + " 2>/dev/null; [ -e " + q
+                            + " ] || exit 0; c=$(ls -A " + q + ") || exit 1; [ -z \"$c\" ] && exit 3; exit 1");
+                    result = code == 0 ? DELETED : code == 3 ? EMPTIED : result;
+                }
+                final int outcome = result;
                 main.post(new Runnable() {
                     @Override public void run() {
                         busy--;
                         Node parent = n.parent;
-                        if (!deleted || parent == null) {
+                        if (outcome == FAILED || parent == null) {
                             changed(TREE);
                             done.done(false, "Couldn't delete " + n.name
                                     + (ShizukuClient.hasPermission() ? "" : " (allowing Shizuku may help)"));
+                            return;
+                        }
+                        if (outcome == EMPTIED && n.kind == Node.DIR) {
+                            n.children = Node.NONE;
+                            n.reaggregateUp();
+                            swapped(n, n, context);
+                            done.done(true, "Deleted everything in " + n.name
+                                    + " (Android keeps the empty folder)");
                             return;
                         }
                         parent.removeChild(n);
@@ -367,6 +390,11 @@ final class Session {
                 });
             }
         }, "ThorDirStat delete").start();
+    }
+
+    private static boolean isEmptyDir(File f) {
+        String[] names = f.isDirectory() ? f.list() : null;
+        return names != null && names.length == 0;
     }
 
     private static boolean deleteTree(File f) {
