@@ -15,6 +15,8 @@ big top screen, and WinDirStat's folder tree and file type list on the bottom sc
 | 🗺️ Treemap (top screen) | 📁 Folders (bottom screen) |
 |---|---|
 | <img src="docs/screenshots/treemap.png" width="400" alt="Cushion treemap of the whole drive: every file is a rectangle sized by its bytes, coloured by file type and grouped by folder"> | <img src="docs/screenshots/folders.png" width="400" alt="Folder tree, biggest first, with a share bar, size and item count for each folder"> |
+| 📦 Apps (each installed app's size) | ☝️ Tap again: the whole folder selected |
+| <img src="docs/screenshots/apps.png" width="400" alt="The Apps folder open in the folder list, listing each installed app with its size, and the Parent folder button at the bottom left"> | <img src="docs/screenshots/treemap-folder.png" width="400" alt="Treemap with a whole folder outlined after tapping one of its files again"> |
 | 🎨 File types | 🔍 Zoomed in, one file type outlined |
 | <img src="docs/screenshots/file-types.png" width="400" alt="File type list with each extension's treemap colour, description, bytes, share and file count"> | <img src="docs/screenshots/treemap-zoomed.png" width="400" alt="Treemap zoomed into one folder with every file of the chosen type outlined in yellow"> |
 | ☰ Actions | 💽 Drives |
