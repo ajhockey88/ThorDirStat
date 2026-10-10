@@ -62,8 +62,9 @@ rescan a folder, and delete (asks first; Android has no recycle bin).
 folder, **X** shows actions, **Y** zooms in, **B** zooms out, **L1 / R1** switch between Folders and
 File types. Works from either screen.
 
-`<Free space>` and `<Unknown>` show each drive's free space and the used space no folder
-accounts for (installed apps, their private data and Android itself), as in WinDirStat.
+`<Unknown>` shows the used space no folder accounts for (installed apps, their private data and
+Android itself), as in WinDirStat. The treemap only shows space in use; each drive's free space
+is in 💽 Drives.
 
 ## ⚙️ Settings
 
@@ -71,7 +72,7 @@ accounts for (installed apps, their private data and Android itself), as in WinD
   the lists and the treemap side by side on one screen. **Swap screens** flips them.
 - 🗺️ **Treemap:** cushion shading, grid lines, brightness, cushion height and scale, with a reset to
   WinDirStat's defaults
-- 💽 **Scanning:** show `<Free space>`, show `<Unknown>`, and count size on disk instead of file length
+- 💽 **Scanning:** show `<Unknown>` and count size on disk instead of file length
 - 📳 **Haptics:** a feel (Off, Tick, Click, Heavy, Double or Buzz) and strength for each action,
   with a preview as you change them
 - 🔄 **Check for updates** and **Reinstall** (at the bottom), as in ThorPad: finds a newer

@@ -10,7 +10,7 @@ import java.util.Comparator;
  * Kept free of Android classes so the layout and treemap can be tested on a desktop JVM.
  */
 final class Node {
-    static final byte FILE = 0, DIR = 1, FREE = 2, UNKNOWN = 3;
+    static final byte FILE = 0, DIR = 1, UNKNOWN = 3;
     static final Node[] NONE = new Node[0];
 
     /** For the root of a volume, its full path; otherwise the file or folder name. */
@@ -43,13 +43,12 @@ final class Node {
 
     boolean isDir() { return kind == DIR; }
 
-    /** A real file or folder (not free space or the unknown remainder). */
+    /** A real file or folder (not the <Unknown> remainder). */
     boolean isReal() { return kind == FILE || kind == DIR; }
 
     String displayName() {
         if (label != null) return label;
         switch (kind) {
-            case FREE: return "<Free space>";
             case UNKNOWN: return "<Unknown>";
             default: return name;
         }

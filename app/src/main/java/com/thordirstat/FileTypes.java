@@ -19,7 +19,6 @@ final class FileTypes implements Treemap.Colors {
             0x0000ff, 0xff0000, 0x00ff00, 0x00ffff, 0xff00ff, 0xffff00,
             0x9696ff, 0xff9696, 0x96ff96, 0x96ffff, 0xff96ff, 0xffff96, 0xffffff};
     static final int OTHER = 0x969696;
-    static final int FREE = 0xbebebe;
     static final int UNKNOWN = 0x787878;
 
     static final class Type {
@@ -80,7 +79,6 @@ final class FileTypes implements Treemap.Colors {
 
     @Override public int color(Node leaf) {
         switch (leaf.kind) {
-            case Node.FREE: return FREE;
             case Node.UNKNOWN: return UNKNOWN;
             case Node.FILE:
                 Type t = of(leaf.ext);

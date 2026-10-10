@@ -23,13 +23,6 @@ public class TreemapTest {
         root.label = "Internal storage";
         root.children = folder(root, rnd, 0).toArray(Node.NONE);
         root.aggregate();
-        Node free = new Node("", Node.FREE, root);
-        free.size = root.size / 3;
-        Node[] withFree = new Node[root.children.length + 1];
-        System.arraycopy(root.children, 0, withFree, 0, root.children.length);
-        withFree[root.children.length] = free;
-        root.children = withFree;
-        root.reaggregateUp();
 
         FileTypes types = new FileTypes(root);
         check(types.sorted().get(0).color == FileTypes.PALETTE[0], "biggest type gets the first colour");

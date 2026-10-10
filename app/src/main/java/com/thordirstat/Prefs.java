@@ -7,7 +7,6 @@ import android.content.SharedPreferences;
 final class Prefs {
     static final String KEY_BOTH_SCREENS = "both_screens";
     static final String KEY_SWAP_SCREENS = "swap_screens";
-    static final String KEY_SHOW_FREE = "show_free";
     static final String KEY_SHOW_UNKNOWN = "show_unknown";
     static final String KEY_SIZE_ON_DISK = "size_on_disk";
     static final String KEY_CUSHION = "cushion";
@@ -29,8 +28,6 @@ final class Prefs {
     boolean bothScreens() { return sp.getBoolean(KEY_BOTH_SCREENS, true); }
     /** Treemap on the bottom screen, lists on the top. */
     boolean swapScreens() { return sp.getBoolean(KEY_SWAP_SCREENS, false); }
-    /** Show each volume's free space as a <Free space> item, like WinDirStat. */
-    boolean showFree() { return sp.getBoolean(KEY_SHOW_FREE, true); }
     /** Show the used space no folder accounts for (apps, system) as <Unknown>. */
     boolean showUnknown() { return sp.getBoolean(KEY_SHOW_UNKNOWN, true); }
     /** Count the space files take on disk instead of their length. */

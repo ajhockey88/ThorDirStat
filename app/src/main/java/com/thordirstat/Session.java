@@ -163,11 +163,13 @@ final class Session {
         }
     }
 
-    // ---- Free space and unknown -------------------------------------------------------------
+    // ---- Unknown -----------------------------------------------------------------------------
 
-    /** Adds or removes each volume's <Free space> and <Unknown> items to match Settings. */
+    /**
+     * Adds or removes each volume's <Unknown> item to match Settings. Free space is left out,
+     * as in WinDirStat's default, so the treemap only shows space that's in use.
+     */
     private void applyPseudoItems(Prefs prefs) {
-        boolean showFree = prefs.showFree();
         boolean showUnknown = prefs.showUnknown();
         for (Map.Entry<Node, Volumes.Volume> e : volumes.entrySet()) {
             Node r = e.getKey();
@@ -184,11 +186,6 @@ final class Session {
                 Node u = new Node("", Node.UNKNOWN, r);
                 u.size = v.used() - scanned;
                 real.add(u);
-            }
-            if (showFree && v.free > 0) {
-                Node f = new Node("", Node.FREE, r);
-                f.size = v.free;
-                real.add(f);
             }
             r.children = real.toArray(Node.NONE);
             r.reaggregateUp();
