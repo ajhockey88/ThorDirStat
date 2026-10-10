@@ -53,7 +53,6 @@ a Thor will replace them.
 | 🎨 Tap a file type | Outlines every file of that type in the treemap in yellow (tap again to clear) |
 
 The bar along the top has 💽 Drives, 🔍 Zoom in, ↩️ Zoom out, ☰ Actions, ⚙️ Settings and ✖️ Close.
-In 💽 Drives, tap **📁 Back to the folders** (or 💽 Drives again, or Back / **B**) to return to the results.
 
 **Actions** (WinDirStat's right-click menu): zoom the treemap into a folder, zoom out, open a file
 in another app, share it, properties (size, share, files, folders, last change), copy the path,

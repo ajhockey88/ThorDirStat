@@ -76,8 +76,7 @@ public class MainActivity extends Activity
         bar.setOrientation(LinearLayout.HORIZONTAL);
         bar.setPadding((int) (6 * d), (int) (6 * d), (int) (6 * d), 0);
         bar.addView(barButton("💽 Drives", new View.OnClickListener() {
-            // Tapping Drives again goes back to the results.
-            @Override public void onClick(View v) { showDrives(drivesPanel.getVisibility() != View.VISIBLE); }
+            @Override public void onClick(View v) { showDrives(true); }
         }), weight());
         bar.addView(barButton("🔍 Zoom in", new View.OnClickListener() {
             @Override public void onClick(View v) { zoomIn(); }
@@ -240,15 +239,6 @@ public class MainActivity extends Activity
     private void refreshDrives() {
         drivesList.removeAllViews();
         drivesList.addView(panelText("Choose what to scan", 19, 255));
-        if (Session.get().root() != null) {
-            // At the top, so it's in view without scrolling past the drives.
-            Button back = panelButton("📁 Back to the folders", new View.OnClickListener() {
-                @Override public void onClick(View v) { showDrives(false); }
-            });
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            lp.topMargin = (int) (10 * d);
-            drivesList.addView(back, lp);
-        }
 
         if (!Environment.isExternalStorageManager()) {
             drivesList.addView(card(
@@ -293,6 +283,14 @@ public class MainActivity extends Activity
         }
         if (vols.isEmpty()) drivesList.addView(panelText("No storage found.", 15, 190));
 
+        if (Session.get().root() != null) {
+            Button back = panelButton("Back to the results", new View.OnClickListener() {
+                @Override public void onClick(View v) { showDrives(false); }
+            });
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            lp.topMargin = (int) (14 * d);
+            drivesList.addView(back, lp);
+        }
     }
 
     private View volumeRow(Volumes.Volume v) {
