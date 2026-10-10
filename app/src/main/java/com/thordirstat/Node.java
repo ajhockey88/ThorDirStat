@@ -150,15 +150,6 @@ final class Node {
         reaggregateUp();
     }
 
-    /** Puts a child back (a delete was undone) and updates every folder above. */
-    void addChild(Node child) {
-        Node[] next = Arrays.copyOf(children, children.length + 1);
-        next[children.length] = child;
-        children = next;
-        child.parent = this;
-        reaggregateUp();
-    }
-
     /** Swaps a child for a freshly scanned copy of it and updates every folder above. */
     void replaceChild(Node old, Node fresh) {
         int i = indexOf(old);

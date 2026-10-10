@@ -24,10 +24,7 @@ final class Session {
         void onSessionChanged(int what);
     }
 
-    static final int SCAN = 1, TREE = 2, SELECTION = 4, ZOOM = 8, EXT = 16, OPTIONS = 32, CLOSE = 64, UNDO = 128;
-
-    /** How long a quick delete from the treemap can still be undone. */
-    static final long UNDO_MS = 5000;
+    static final int SCAN = 1, TREE = 2, SELECTION = 4, ZOOM = 8, EXT = 16, OPTIONS = 32, CLOSE = 64;
 
     private static final Session INSTANCE = new Session();
 
@@ -91,7 +88,6 @@ final class Session {
     /** Scans the given volumes; with more than one, they go under an "All storage" root. */
     void scan(final Context context, final List<Volumes.Volume> vols) {
         if (vols.isEmpty()) return;
-        commitPending();
         cancelScan();
         final Prefs prefs = new Prefs(context);
         final Scanner s = new Scanner(prefs.sizeOnDisk(), true);
@@ -178,23 +174,20 @@ final class Session {
             Volumes.Volume v = e.getValue();
             List<Node> real = new ArrayList<>();
             long scanned = 0;
-            // Space a quick delete is about to free already counts as free, not as <Unknown>.
-            long pendingBytes = pending != null && pending.volumeRoot == r ? pending.node.size : 0;
-            long used = Math.max(0, v.used() - pendingBytes);
             for (Node c : r.children) {
                 if (c.isReal()) {
                     real.add(c);
                     scanned += c.size;
                 }
             }
-            if (showUnknown && used > scanned) {
+            if (showUnknown && v.used() > scanned) {
                 Node u = new Node("", Node.UNKNOWN, r);
-                u.size = used - scanned;
+                u.size = v.used() - scanned;
                 real.add(u);
             }
-            if (showFree && v.free + pendingBytes > 0) {
+            if (showFree && v.free > 0) {
                 Node f = new Node("", Node.FREE, r);
-                f.size = v.free + pendingBytes;
+                f.size = v.free;
                 real.add(f);
             }
             r.children = real.toArray(Node.NONE);
@@ -241,10 +234,7 @@ final class Session {
         return true;
     }
 
-    void closeAll() {
-        commitPending();
-        changed(CLOSE);
-    }
+    void closeAll() { changed(CLOSE); }
 
     // ---- Rescan and delete ----------------------------------------------------------------------
 
@@ -348,21 +338,21 @@ final class Session {
         }
     }
 
-    /** A file or folder (and everything in it), not a volume or free space / unknown. */
-    boolean canDelete(Node n) {
-        return n != null && n.isReal() && n.parent != null && n.label == null && !volumes.containsKey(n);
-    }
-
     /** Deletes a file or a folder and everything in it, for good. */
     void delete(final Context context, final Node n, final Done done) {
-        if (!canDelete(n)) return;
+        if (n == null || !n.isReal() || n.parent == null || volumes.containsKey(n)) return;
         final String path = n.path();
         final boolean shell = n.viaShell;
         busy++;
         changed(TREE);
         new Thread(new Runnable() {
             @Override public void run() {
-                final boolean deleted = deleteNow(path, shell);
+                boolean ok = !shell && deleteTree(new File(path));
+                if (!ok && ShizukuClient.hasPermission()) {
+                    ok = ShizukuClient.runShell("rm -rf -- " + Scanner.quote(path));
+                }
+                // Apps can't see into the folders Shizuku handles, so trust rm's answer there.
+                final boolean deleted = ok && (shell || !new File(path).exists());
                 main.post(new Runnable() {
                     @Override public void run() {
                         busy--;
@@ -376,113 +366,6 @@ final class Session {
                         parent.removeChild(n);
                         swapped(n, parent, context);
                         done.done(true, "Deleted " + n.name);
-                    }
-                });
-            }
-        }, "ThorDirStat delete").start();
-    }
-
-    /** Deletes from storage. Call off the main thread. */
-    private static boolean deleteNow(String path, boolean shell) {
-        boolean ok = !shell && deleteTree(new File(path));
-        if (!ok && ShizukuClient.hasPermission()) {
-            ok = ShizukuClient.runShell("rm -rf -- " + Scanner.quote(path));
-        }
-        // Apps can't see into the folders Shizuku handles, so trust rm's answer there.
-        return ok && (shell || !new File(path).exists());
-    }
-
-    // ---- Quick delete with undo -----------------------------------------------------------------
-
-    /** A quick delete waiting out its undo time: gone from the tree, still on storage. */
-    private static final class Pending {
-        final Node node, parent, volumeRoot;
-        final String path;
-        final boolean shell;
-        final Context context;
-        final Runnable commit;
-
-        Pending(Node node, Node parent, Node volumeRoot, Context context, Runnable commit) {
-            this.node = node;
-            this.parent = parent;
-            this.volumeRoot = volumeRoot;
-            this.path = node.path();
-            this.shell = node.viaShell;
-            this.context = context.getApplicationContext();
-            this.commit = commit;
-        }
-    }
-
-    private Pending pending;
-
-    /** The item a quick delete is about to remove, or null. */
-    Node pendingDelete() { return pending != null ? pending.node : null; }
-
-    /**
-     * Removes an item from the tree straight away and deletes it from storage once the undo
-     * time is up (or as soon as another quick delete starts).
-     */
-    void quickDelete(Context context, Node n) {
-        if (!canDelete(n)) return;
-        commitPending();
-        Node volumeRoot = n;
-        while (volumeRoot != null && !volumes.containsKey(volumeRoot)) volumeRoot = volumeRoot.parent;
-        Node parent = n.parent;
-        final Pending[] holder = new Pending[1];
-        Runnable commit = new Runnable() {
-            @Override public void run() {
-                if (pending == holder[0]) commitPending();
-            }
-        };
-        holder[0] = new Pending(n, parent, volumeRoot, context, commit);
-        pending = holder[0];
-        parent.removeChild(n);
-        swapped(n, parent, context);
-        main.postDelayed(commit, UNDO_MS);
-        changed(UNDO);
-    }
-
-    /** Puts the item back; nothing was deleted. */
-    void undoDelete() {
-        final Pending p = pending;
-        if (p == null) return;
-        pending = null;
-        main.removeCallbacks(p.commit);
-        if (p.parent.parent != null || p.parent == root) {
-            p.parent.addChild(p.node);
-            applyPseudoItems(new Prefs(p.context));
-            types = new FileTypes(root);
-            if (selectedType != null) selectedType = types.of(selectedType.ext);
-            selected = p.node;
-        }
-        changed(TREE | SELECTION | EXT | UNDO);
-    }
-
-    /** Deletes the waiting item from storage now. */
-    private void commitPending() {
-        final Pending p = pending;
-        if (p == null) return;
-        pending = null;
-        main.removeCallbacks(p.commit);
-        busy++;
-        changed(UNDO);
-        new Thread(new Runnable() {
-            @Override public void run() {
-                final boolean ok = deleteNow(p.path, p.shell);
-                main.post(new Runnable() {
-                    @Override public void run() {
-                        busy--;
-                        if (!ok && (p.parent.parent != null || p.parent == root)) {
-                            p.parent.addChild(p.node); // still there: show it again
-                            types = new FileTypes(root);
-                        }
-                        refreshFreeSpace();
-                        applyPseudoItems(new Prefs(p.context));
-                        changed(TREE | EXT);
-                        android.widget.Toast.makeText(p.context, ok ? "Deleted " + p.node.name
-                                : "Couldn't delete " + p.node.name
-                                + (ShizukuClient.hasPermission() ? "" : " (allowing Shizuku may help)"),
-                                android.widget.Toast.LENGTH_SHORT).show();
                     }
                 });
             }
