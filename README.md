@@ -127,3 +127,10 @@ java -cp build/test com.thordirstat.TreemapTest build/treemap.png
 The signing key is not in this repository. `build.sh` reads it from `keystore/thordirstat.jks`
 (or `$KEYSTORE`) and creates a new one if missing; an APK signed with a different key has to
 be uninstalled before it can replace an older install.
+
+### Releasing
+
+Bump `versionCode` and `versionName` in `app/build.gradle` and `AndroidManifest.xml`, build with
+the usual key, then tag a commit that adds `release/ThorDirStat.apk` and `release/notes.md` and
+push only the tag (`git push origin v1.1`). The Release workflow publishes it, and the app's
+Check for updates finds it. The tag's commit doesn't need to go on `main`.
