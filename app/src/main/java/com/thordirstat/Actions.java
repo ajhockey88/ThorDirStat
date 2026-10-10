@@ -60,7 +60,20 @@ final class Actions {
                 }
             });
         }
-        if (n.kind == Node.DIR) {
+        if (n.kind == Node.APP) {
+            add(labels, actions, "⚙️ App info (clear cache, uninstall)", new Runnable() {
+                @Override public void run() {
+                    try {
+                        activity.startActivity(new android.content.Intent(
+                                android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                android.net.Uri.parse("package:" + n.name)));
+                    } catch (ActivityNotFoundException e) {
+                        Toast.makeText(activity, "Couldn't open app info", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }
+        if (n.kind == Node.DIR && n.isReal()) {
             add(labels, actions, "🔄 Rescan this folder", new Runnable() {
                 @Override public void run() {
                     s.rescan(activity, n, toast(activity));
@@ -112,11 +125,15 @@ final class Actions {
         if (n.parent != null) sb.append("Share of its folder: ").append(Format.percent(n.size, n.parent.size)).append('\n');
         Node root = Session.get().root();
         if (root != null && root != n) sb.append("Share of everything scanned: ").append(Format.percent(n.size, root.size)).append('\n');
-        if (n.kind == Node.DIR) {
+        if (n.kind == Node.DIR && n.pseudo) {
+            sb.append("Apps: ").append(Format.count(n.children.length)).append('\n');
+        } else if (n.kind == Node.DIR) {
             sb.append("Files: ").append(Format.count(n.files)).append('\n');
             sb.append("Folders: ").append(Format.count(n.dirs)).append('\n');
         } else if (n.kind == Node.FILE) {
             sb.append("Type: ").append(FileTypes.describe(n.ext)).append('\n');
+        } else if (n.kind == Node.APP && n.info != null) {
+            sb.append(n.info).append('\n');
         }
         if (n.isReal()) sb.append("Last change: ").append(Format.date(n.modified)).append('\n');
         if (n.restricted) {
@@ -124,8 +141,10 @@ final class Actions {
                     + "and scan again to measure it.\n");
         }
         if (n.kind == Node.UNKNOWN) {
-            sb.append("\nSpace in use that no folder here accounts for: installed apps, their private "
-                    + "data, and Android itself.\n");
+            sb.append(Session.get().hasApps()
+                    ? "\nSpace in use that no folder or app here accounts for: mostly Android itself.\n"
+                    : "\nSpace in use that no folder here accounts for: installed apps, their private "
+                            + "data, and Android itself. Allow usage access in Drives to see each app's size.\n");
         }
         new AlertDialog.Builder(activity)
                 .setTitle(n.displayName())

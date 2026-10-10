@@ -46,6 +46,7 @@ public class MainActivity extends Activity
     private TypeList typeList;
     private Button foldersTab, typesTab;
     private TextView selectionLine;
+    private Button parentButton;
     private View results;
     private ScrollView drivesPanel;
     private LinearLayout drivesList;
@@ -133,6 +134,7 @@ public class MainActivity extends Activity
     protected void onResume() {
         super.onResume();
         current = this;
+        if (AppSizes.allowed(this)) Session.get().appsAllowed(this);
         refreshDrives();
         updatePanels();
     }
@@ -180,6 +182,21 @@ public class MainActivity extends Activity
         typeList.setVisibility(View.GONE);
         listFrame.addView(folders, match());
         listFrame.addView(typeList, match());
+        // Bottom left: select the folder that holds the selected item.
+        parentButton = barButton("⬆️ Parent folder", new View.OnClickListener() {
+            @Override public void onClick(View v) { selectParent(); }
+        });
+        parentButton.setPadding((int) (12 * d), 0, (int) (12 * d), 0);
+        parentButton.setTextSize(12);
+        parentButton.setBackground(rounded(Color.rgb(0x2a, 0x4a, 0x7a)));
+        parentButton.setTextColor(Color.WHITE);
+        FrameLayout.LayoutParams plp = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, (int) (36 * d), Gravity.BOTTOM | Gravity.START);
+        plp.setMargins((int) (8 * d), 0, 0, (int) (8 * d));
+        listFrame.addView(parentButton, plp);
+        // Room below the last row, so it can scroll clear of the button.
+        folders.setPadding(0, 0, 0, (int) (52 * d));
+        folders.setClipToPadding(false);
         lists.addView(listFrame, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
 
         if (dual) return lists;
@@ -264,6 +281,14 @@ public class MainActivity extends Activity
             shizuku = "Optional: with Shizuku running, ThorDirStat can also measure Android/data and "
                     + "Android/obb, which Android hides from apps. Start Shizuku, then come back.";
             shizukuButton = "Open Shizuku";
+        }
+        if (!AppSizes.allowed(this) && !ShizukuClient.hasPermission()) {
+            drivesList.addView(card("📦 App sizes",
+                    "Optional: allow usage access so the space installed apps and their data take shows "
+                            + "app by app in <Apps>, instead of in <Unknown>.",
+                    "Allow usage access", new View.OnClickListener() {
+                        @Override public void onClick(View v) { requestUsageAccess(); }
+                    }));
         }
         drivesList.addView(card("🧩 Hidden app folders", shizuku, shizukuButton, new View.OnClickListener() {
             @Override public void onClick(View v) { shizukuClicked(); }
@@ -374,6 +399,17 @@ public class MainActivity extends Activity
     }
 
     // ---- Permissions --------------------------------------------------------------------------
+
+    private void requestUsageAccess() {
+        try {
+            startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS, Uri.parse("package:" + getPackageName())));
+        } catch (RuntimeException e) {
+            try {
+                startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS));
+            } catch (RuntimeException ignored) {
+            }
+        }
+    }
 
     private void requestAllFiles() {
         if (ShizukuClient.hasPermission()) {
@@ -486,6 +522,7 @@ public class MainActivity extends Activity
         }
         if ((what & Session.EXT) != 0 && Session.get().selectedType() != null && !showingTypes) showTypes(true);
         refreshSelectionLine();
+        updateParentButton();
         updatePanels();
     }
 
@@ -510,12 +547,25 @@ public class MainActivity extends Activity
         }
     }
 
+    private void selectParent() {
+        Session s = Session.get();
+        Node n = s.selected();
+        if (n == null || n.parent == null) return;
+        s.select(n.parent);
+    }
+
+    private void updateParentButton() {
+        Node n = Session.get().selected();
+        parentButton.setVisibility(!showingTypes && n != null && n.parent != null ? View.VISIBLE : View.GONE);
+    }
+
     private void showTypes(boolean types) {
         showingTypes = types;
         folders.setVisibility(types ? View.GONE : View.VISIBLE);
         typeList.setVisibility(types ? View.VISIBLE : View.GONE);
         styleTab(foldersTab, !types);
         styleTab(typesTab, types);
+        updateParentButton();
     }
 
     private void zoomIn() {
