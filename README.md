@@ -12,12 +12,20 @@ big top screen, and WinDirStat's folder tree and file type list on the bottom sc
 
 ## 📸 Screens
 
-| 🗺️ Treemap (top screen) |
-|---|
-| <img src="docs/treemap-preview.png" width="800" alt="Cushion treemap: every file is a rectangle sized by its bytes, coloured by file type and grouped by folder"> |
+| 🗺️ Treemap (top screen) | 📁 Folders (bottom screen) |
+|---|---|
+| <img src="docs/screenshots/treemap.png" width="400" alt="Cushion treemap of the whole drive: every file is a rectangle sized by its bytes, coloured by file type and grouped by folder"> | <img src="docs/screenshots/folders.png" width="400" alt="Folder tree, biggest first, with a share bar, size and item count for each folder"> |
+| 🎨 File types | 🔍 Zoomed in, one file type outlined |
+| <img src="docs/screenshots/file-types.png" width="400" alt="File type list with each extension's treemap colour, description, bytes, share and file count"> | <img src="docs/screenshots/treemap-zoomed.png" width="400" alt="Treemap zoomed into one folder with every file of the chosen type outlined in yellow"> |
+| ☰ Actions | 💽 Drives |
+| <img src="docs/screenshots/actions.png" width="400" alt="Actions menu for a file: zoom, open, share, properties, copy path, rescan and delete"> | <img src="docs/screenshots/drives.png" width="400" alt="Drive picker with internal storage, SD card and all drives, each with a used and free bar"> |
+| 🟨 Scanning | 🖥️ One-screen mode |
+| <img src="docs/screenshots/scanning.png" width="400" alt="Scanning with WinDirStat's Pac-Man and climbing file and byte counts"> | <img src="docs/screenshots/one-screen.png" width="400" alt="Lists and treemap side by side on one screen"> |
+| ⚙️ Settings | 📳 Haptics |
+| <img src="docs/screenshots/settings.png" width="400" alt="Settings: screens, treemap shading, scanning options and updates"> | <img src="docs/screenshots/haptics.png" width="400" alt="Haptics settings with a feel and strength for each action"> |
 
-The picture is the treemap engine drawing a made-up storage tree (`test/TreemapTest.java`);
-screenshots from a Thor will replace it.
+The screenshots are drawn from the app's own code with made-up storage contents; pictures from
+a Thor will replace them.
 
 - 🗺️ **Treemap:** every file is a rectangle sized by its bytes, inside its folder's rectangle,
   coloured by file type and shaded as a cushion so folders show as bumps, just like WinDirStat.
