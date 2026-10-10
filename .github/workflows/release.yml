@@ -1,0 +1,38 @@
+name: Release
+
+# Publishes a GitHub release when a version tag (v1.0, v1.1, ...) is pushed. The tagged commit
+# carries the signed APK and the release notes in release/, so the signing key never leaves
+# the machine that builds it (see "Releasing" in the README). Check for updates in the app
+# reads these releases.
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Publish release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Check the APK
+        run: |
+          test -f release/ThorDirStat.apk
+          test -s release/notes.md
+          ls -lh release/ThorDirStat.apk
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" release/ThorDirStat.apk \
+            --title "ThorDirStat ${GITHUB_REF_NAME#v}" \
+            --notes-file release/notes.md \
+            --verify-tag \
+            --latest
