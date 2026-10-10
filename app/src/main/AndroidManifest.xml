@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.thordirstat"
-    android:versionCode="3"
-    android:versionName="1.2">
+    android:versionCode="5"
+    android:versionName="1.4">
 
     <uses-sdk android:minSdkVersion="31" android:targetSdkVersion="33" />
 
@@ -11,6 +11,9 @@
     <!-- Lets Shizuku offer ThorDirStat its shell helper, used for Android/data and Android/obb. -->
     <uses-permission android:name="moe.shizuku.manager.permission.API_V23" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- Usage access and the app list: each installed app's size, shown in <Apps>. -->
+    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" />
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
     <!-- Only for Settings > Check for updates: reads ThorDirStat's GitHub releases. -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />

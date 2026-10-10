@@ -10,7 +10,7 @@ import java.util.Comparator;
  * Kept free of Android classes so the layout and treemap can be tested on a desktop JVM.
  */
 final class Node {
-    static final byte FILE = 0, DIR = 1, UNKNOWN = 3;
+    static final byte FILE = 0, DIR = 1, UNKNOWN = 3, APP = 4;
     static final Node[] NONE = new Node[0];
 
     /** For the root of a volume, its full path; otherwise the file or folder name. */
@@ -33,6 +33,10 @@ final class Node {
     boolean viaShell;
     /** A folder Android hides from apps (Android/data, Android/obb) that couldn't be measured. */
     boolean restricted;
+    /** A folder that isn't on the device: <Apps>, which holds each installed app's size. */
+    boolean pseudo;
+    /** Apps: the package name and how the size splits up, for Properties. */
+    String info;
 
     Node(String name, byte kind, Node parent) {
         this.name = name;
@@ -43,8 +47,8 @@ final class Node {
 
     boolean isDir() { return kind == DIR; }
 
-    /** A real file or folder (not the <Unknown> remainder). */
-    boolean isReal() { return kind == FILE || kind == DIR; }
+    /** A real file or folder (not <Apps>, an app, or the <Unknown> remainder). */
+    boolean isReal() { return (kind == FILE || kind == DIR) && !pseudo; }
 
     String displayName() {
         if (label != null) return label;
@@ -123,11 +127,11 @@ final class Node {
             int f = 0, d = 0;
             for (Node c : n.children) {
                 s += c.size;
-                if (c.kind == DIR) {
+                if (c.kind == DIR && !c.pseudo) {
                     d += 1 + c.dirs;
                     f += c.files;
-                } else if (c.kind == FILE) {
-                    f += 1;
+                } else if (c.kind == FILE || c.kind == APP) {
+                    f += 1; // an app only counts within <Apps>, which its parent skips
                 }
             }
             n.size = s;

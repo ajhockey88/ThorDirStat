@@ -7,6 +7,7 @@ import android.os.StatFs;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +40,8 @@ final class Session {
     private Node selected;
     private FileTypes.Type selectedType;
     private final Map<Node, Volumes.Volume> volumes = new IdentityHashMap<>();
+    /** Each installed app's size on internal storage, or null without usage access. */
+    private List<AppSizes.App> apps;
 
     private volatile Scanner scanner;
     private long scanStarted;
@@ -111,7 +114,7 @@ final class Session {
                     roots.add(r);
                 }
                 if (s.isCancelled() || roots.size() != vols.size()) {
-                    finishScan(s, null, null, prefs);
+                    finishScan(s, null, null, null, prefs);
                     return;
                 }
                 if (top != null) {
@@ -120,7 +123,9 @@ final class Session {
                 } else {
                     top = roots.get(0);
                 }
-                finishScan(s, top, found, prefs);
+                List<AppSizes.App> appList = null;
+                for (Volumes.Volume v : vols) if (AppSizes.isInternal(v.path)) appList = AppSizes.query(context);
+                finishScan(s, top, found, appList, prefs);
             }
         }, "ThorDirStat scan").start();
     }
@@ -133,7 +138,7 @@ final class Session {
     }
 
     private void finishScan(final Scanner s, final Node newRoot, final Map<Node, Volumes.Volume> found,
-                            final Prefs prefs) {
+                            final List<AppSizes.App> appList, final Prefs prefs) {
         final FileTypes t = newRoot != null ? new FileTypes(newRoot) : null;
         main.post(new Runnable() {
             @Override public void run() {
@@ -143,6 +148,7 @@ final class Session {
                     root = newRoot;
                     volumes.clear();
                     volumes.putAll(found);
+                    apps = appList;
                     types = t;
                     zoom = null;
                     selected = root;
@@ -166,8 +172,8 @@ final class Session {
     // ---- Unknown -----------------------------------------------------------------------------
 
     /**
-     * Adds or removes each volume's <Unknown> item to match Settings. Free space is left out,
-     * as in WinDirStat's default, so the treemap only shows space that's in use.
+     * Adds or removes each volume's <Apps> and <Unknown> items to match Settings. Free space is
+     * left out, as in WinDirStat's default, so the treemap only shows space that's in use.
      */
     private void applyPseudoItems(Prefs prefs) {
         boolean showUnknown = prefs.showUnknown();
@@ -182,6 +188,13 @@ final class Session {
                     scanned += c.size;
                 }
             }
+            if (showUnknown && apps != null && AppSizes.isInternal(v.path)) {
+                Node appsDir = appsFolder(r);
+                if (appsDir.size > 0) {
+                    real.add(appsDir);
+                    scanned += appsDir.size;
+                }
+            }
             if (showUnknown && v.used() > scanned) {
                 Node u = new Node("", Node.UNKNOWN, r);
                 u.size = v.used() - scanned;
@@ -190,7 +203,107 @@ final class Session {
             r.children = real.toArray(Node.NONE);
             r.reaggregateUp();
         }
-        if (selected != null && !selected.isReal() && selected.parent == null) selected = root;
+        // <Apps>, its apps and <Unknown> were just rebuilt: point at the new ones.
+        selected = current(selected);
+        if (zoom != null) {
+            zoom = current(zoom);
+            if (zoom == root) zoom = null;
+        }
+    }
+
+    /** n if it's still in the tree, else its rebuilt stand-in (or the root). */
+    private Node current(Node n) {
+        if (n == null || inTree(n)) return n;
+        Node vol = n;
+        while (vol != null && !volumes.containsKey(vol)) vol = vol.parent;
+        if (vol == null || !inTree(vol)) return root;
+        for (Node c : vol.children) {
+            if (c.kind != n.kind && !(c.pseudo && n.kind == Node.APP)) continue;
+            if (c.kind == Node.UNKNOWN || (c.pseudo && n.pseudo)) return c;
+            if (c.pseudo) {
+                for (Node a : c.children) if (a.name.equals(n.name)) return a;
+                return c;
+            }
+        }
+        return vol;
+    }
+
+    private boolean inTree(Node n) {
+        for (; n.parent != null; n = n.parent) {
+            if (!Arrays.asList(n.parent.children).contains(n)) return false;
+        }
+        return n == root;
+    }
+
+    /**
+     * <Apps>: each app's code and private data. Android counts an app's folders in
+     * Android/data, Android/obb and Android/media as its own too; when the scan measured
+     * those, they're already in the tree, so they come off the app's share here.
+     */
+    private Node appsFolder(Node volRoot) {
+        Node dir = new Node("", Node.DIR, volRoot);
+        dir.pseudo = true;
+        dir.label = "<Apps>";
+        Node android = child(volRoot, "Android");
+        Node data = child(android, "data"), obb = child(android, "obb"), media = child(android, "media");
+        List<Node> kids = new ArrayList<>();
+        for (AppSizes.App a : apps) {
+            long measured = size(child(data, a.pkg)) + size(child(obb, a.pkg)) + size(child(media, a.pkg));
+            long own = Math.max(0, a.app + a.data - measured);
+            if (own <= 0) continue;
+            Node n = new Node(a.pkg, Node.APP, dir);
+            n.label = a.label;
+            n.size = own;
+            n.info = a.pkg + "\nApp: " + Format.size(a.app) + "\nData: " + Format.size(a.data)
+                    + " (cache " + Format.size(a.cache) + ")"
+                    + (measured > 0 ? "\nAlready shown in Android/data, obb and media: " + Format.size(measured) : "");
+            kids.add(n);
+        }
+        dir.children = kids.toArray(Node.NONE);
+        Arrays.sort(dir.children, Node.BIGGEST_FIRST);
+        for (Node n : dir.children) dir.size += n.size;
+        dir.files = dir.children.length;
+        return dir;
+    }
+
+    private static Node child(Node dir, String name) {
+        if (dir == null || dir.kind != Node.DIR) return null;
+        for (Node c : dir.children) if (name.equals(c.name) && c.isReal()) return c;
+        return null;
+    }
+
+    private static long size(Node n) { return n == null ? 0 : n.size; }
+
+    boolean hasApps() { return apps != null; }
+
+    /** Reads every app's size again (after a delete or rescan), then redraws. */
+    private void refreshApps(final Context context) {
+        if (apps == null) return;
+        new Thread(new Runnable() {
+            @Override public void run() {
+                final List<AppSizes.App> fresh = AppSizes.query(context.getApplicationContext());
+                main.post(new Runnable() {
+                    @Override public void run() {
+                        if (fresh == null || root == null) return;
+                        apps = fresh;
+                        applyPseudoItems(new Prefs(context.getApplicationContext()));
+                        changed(TREE);
+                    }
+                });
+            }
+        }, "ThorDirStat app sizes").start();
+    }
+
+    /** Usage access was just allowed: add <Apps> to the scan that's showing. */
+    void appsAllowed(Context context) {
+        if (apps != null || root == null) return;
+        for (Volumes.Volume v : volumes.values()) {
+            if (AppSizes.isInternal(v.path)) {
+                apps = new ArrayList<>();
+                refreshApps(context);
+                return;
+            }
+        }
     }
 
     /** Settings changed what's shown. */
@@ -319,6 +432,7 @@ final class Session {
         if (zoom != null && old.isAncestorOf(zoom)) zoom = fresh.kind == Node.DIR ? fresh : fresh.parent;
         refreshFreeSpace();
         applyPseudoItems(new Prefs(context));
+        refreshApps(context);
         types = new FileTypes(root);
         if (selectedType != null) selectedType = types.of(selectedType.ext);
         changed(TREE | SELECTION | ZOOM | EXT);

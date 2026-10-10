@@ -34,6 +34,8 @@ final class TreemapView extends View {
     private final Paint typePaint = new Paint();
     private final Paint emptyPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final GestureDetector gestures;
+    /** The rectangle tapped last, so tapping it again can climb to its folder. */
+    private Node lastTapped;
     private final float d;
 
     private Treemap shown;
@@ -70,10 +72,19 @@ final class TreemapView extends View {
 
             @Override public boolean onSingleTapConfirmed(MotionEvent e) {
                 Node n = hit(e);
-                if (n != null) {
-                    Haptics.play(getContext(), Haptics.SELECT);
-                    Session.get().select(n);
+                if (n == null) return true;
+                Session s = Session.get();
+                Node sel = s.selected();
+                Node leaf = n;
+                // Tapping the same rectangle again selects the folder around the selection, so a
+                // few taps on one tiny file climb out to the folder the whole block belongs to.
+                if (leaf == lastTapped && sel != null && sel.isAncestorOf(leaf) && sel.parent != null
+                        && sel != s.zoom()) {
+                    n = sel.parent;
                 }
+                lastTapped = leaf;
+                Haptics.play(getContext(), Haptics.SELECT);
+                s.select(n);
                 return true;
             }
 

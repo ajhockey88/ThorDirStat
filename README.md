@@ -42,6 +42,7 @@ a Thor will replace them.
 | On the treemap | |
 |---|---|
 | ☝️ Tap a rectangle | Selects that file; the folder tree opens to it |
+| ☝️ Tap it again | Selects the folder around it, and again for the folder around that, so you can see which folder a block of tiny files belongs to |
 | ✌️ Double-tap | Zooms into that folder (one level at a time) |
 | ✊ Press and hold | Actions for that file |
 
@@ -50,21 +51,23 @@ a Thor will replace them.
 | ☝️ Tap a row | Selects it and outlines it in the treemap |
 | ▸ Tap the arrow, or tap a selected folder | Opens or closes the folder |
 | ✊ Press and hold | Actions |
+| ⬆️ Parent folder (bottom left) | Selects the folder that holds the selected item |
 | 🎨 Tap a file type | Outlines every file of that type in the treemap in yellow (tap again to clear) |
 
 The bar along the top has 💽 Drives, 🔍 Zoom in, ↩️ Zoom out, ☰ Actions, ⚙️ Settings and ✖️ Close.
 
 **Actions** (WinDirStat's right-click menu): zoom the treemap into a folder, zoom out, open a file
-in another app, share it, properties (size, share, files, folders, last change), copy the path,
+in another app, share it, open an app's App info, properties (size, share, files, folders, last change), copy the path,
 rescan a folder, and delete (asks first; Android has no recycle bin).
 
 🎮 **Gamepad:** D-pad moves through the list (◀ ▶ close and open folders), **A** opens or closes a
 folder, **X** shows actions, **Y** zooms in, **B** zooms out, **L1 / R1** switch between Folders and
 File types. Works from either screen.
 
-`<Unknown>` shows the used space no folder accounts for (installed apps, their private data and
-Android itself), as in WinDirStat. The treemap only shows space in use; each drive's free space
-is in 💽 Drives.
+`<Apps>` on internal storage shows each installed app's own size: its code and private data,
+which apps can't see as folders. Hold an app for **App info**, to clear its cache or uninstall
+it. `<Unknown>` is the used space nothing else accounts for (mostly Android itself), as in
+WinDirStat. The treemap only shows space in use; each drive's free space is in 💽 Drives.
 
 ## ⚙️ Settings
 
@@ -88,6 +91,9 @@ is in 💽 Drives.
    Shizuku**. Android hides those folders from apps, and on a gaming handheld they are often the
    biggest ones (game data, emulator files). Without Shizuku they show as "hidden by Android" and
    their space counts towards `<Unknown>`.
+4. Optional, for `<Apps>`: in 💽 Drives, tap **Allow usage access** and turn it on for ThorDirStat.
+   (With Shizuku allowed, ThorDirStat switches this on by itself.) Without it, apps' sizes count
+   towards `<Unknown>`.
 
 🔄 **Updating:** tap **Check for updates** at the bottom of Settings, or install the newest
 `ThorDirStat.apk` from [Releases](https://github.com/ajhockey88/ThorDirStat/releases) over the old one.
