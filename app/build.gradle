@@ -1,0 +1,25 @@
+plugins {
+    id "com.android.application"
+}
+
+android {
+    namespace "com.thordirstat"
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.thordirstat"
+        minSdk 31
+        targetSdk 33
+        versionCode 1
+        versionName "1.0"
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    implementation "dev.rikka.shizuku:aidl:13.1.5"
+}
